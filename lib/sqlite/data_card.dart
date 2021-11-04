@@ -15,12 +15,20 @@ class DataCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0.0)),
+        selected: true,
+        selectedTileColor: Colors.grey[300],
         leading: CircleAvatar(
+          backgroundColor: Colors.lightBlue,
           child: IconButton(
               onPressed: () {
                 edit(index);
               },
-              icon: Icon(Icons.edit)),
+              icon: Icon(
+                Icons.edit,
+                color: Colors.white54,
+              )
+          ),
         ),
         title: Text(data.property),
         subtitle: Text(data.price),
@@ -57,6 +65,7 @@ class DetailScreen extends StatelessWidget {
     // Use the Todo to create the UI.
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.blueGrey,
         title: Text(data.reporter),
       ),
       // body: Center(

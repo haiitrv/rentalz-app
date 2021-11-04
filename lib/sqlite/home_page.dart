@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:rentalz_app/sqlite/colors.dart';
+import 'package:rentalz_app/sqlite/about_us.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:rentalz_app/sqlite/data_card.dart';
 import 'package:rentalz_app/sqlite/data_model.dart';
 import 'package:rentalz_app/sqlite/database.dart';
@@ -22,12 +26,14 @@ class _HomePageState extends State<HomePage> {
   int currentIndex = 0;
 
   late DB db;
+  late List<DataModel> _findItem;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     db = DB();
     getData();
+    _findItem = datas;
   }
 
   // getData() -> local function
@@ -41,10 +47,27 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    var _textEditingController;
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.blueGrey,
         centerTitle: true,
-        title: Text('RentalZ'),
+        title: Container(
+          decoration: BoxDecoration(
+            color: Colors.white54,
+            borderRadius: BorderRadius.circular(2.5),
+          ),
+          child: Center(
+            child: TextFormField(
+              onChanged: (value) => onSearchTextChanged(value),
+              controller: _textEditingController,
+              decoration: InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.all(5),
+                  hintText: 'Search'),
+            ),
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -55,17 +78,36 @@ class _HomePageState extends State<HomePage> {
       body: fetching
           ? Center(child: CircularProgressIndicator())
           : ListView.builder(
-        itemCount: datas.length,
-        itemBuilder: (context, index) => DataCard(
-          data: datas[index],
-          edit: edit,
-          index: index,
-          delete: delete,
+              itemCount: _findItem.length,
+              itemBuilder: (context, index) => DataCard(
+                data: _findItem[index],
+                edit: edit,
+                index: index,
+                delete: delete,
+              ),
+            ),
+      drawer: Drawer(
+        child: ListView(
+          children:  <Widget>[
+            DrawerHeader(
+                child: Text(
+              'RentalZ',
+              style: TextStyle(color: Colors.black38, fontSize: 45),
+            )),
+            ListTile(
+              title:  Text('About Us'),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => AboutUs()));
+              },
+            )
+          ],
         ),
       ),
     );
   }
 
+
+  // Form to Create New Property
   void showMyDilogue() async {
     return showDialog(
         context: context,
@@ -80,31 +122,31 @@ class _HomePageState extends State<HomePage> {
                     controller: propertyController,
                     decoration: InputDecoration(labelText: 'Property Type'),
                     validator: (val) =>
-                    val!.isEmpty ?  'You must provide something!' : null,
+                        val!.isEmpty ? 'You must provide something!' : null,
                   ),
                   TextFormField(
                     controller: bedroomsController,
                     decoration: InputDecoration(labelText: 'Bedrooms'),
                     validator: (val) =>
-                    val!.isEmpty ? 'You must provide something!' : null,
+                        val!.isEmpty ? 'You must provide something!' : null,
                   ),
                   TextFormField(
                     controller: priceController,
                     decoration: InputDecoration(labelText: 'Price'),
                     validator: (val) =>
-                    val!.isEmpty ?  'You must provide something!' : null,
+                        val!.isEmpty ? 'You must provide something!' : null,
                   ),
                   TextFormField(
                     controller: furnitureController,
                     decoration: InputDecoration(labelText: 'Furniture Type'),
                     validator: (val) =>
-                    val!.isEmpty ?  'You must provide something!' : null,
+                        val!.isEmpty ? 'You must provide something!' : null,
                   ),
                   TextFormField(
                     controller: reporterController,
                     decoration: InputDecoration(labelText: 'Name'),
                     validator: (val) =>
-                    val!.isEmpty ?  'You must provide something!' : null,
+                        val!.isEmpty ? 'You must provide something!' : null,
                   ),
                 ],
               ),
@@ -114,11 +156,11 @@ class _HomePageState extends State<HomePage> {
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
                       DataModel dataLocal = DataModel(
-                          property: propertyController.text,
-                          bedrooms: bedroomsController.text,
-                          price: priceController.text,
-                          furniture: furnitureController.text,
-                          reporter: reporterController.text,
+                        property: propertyController.text,
+                        bedrooms: bedroomsController.text,
+                        price: priceController.text,
+                        furniture: furnitureController.text,
+                        reporter: reporterController.text,
                       );
                       db.insertData(dataLocal);
                       dataLocal.id = datas[datas.length - 1].id! + 1;
@@ -132,7 +174,6 @@ class _HomePageState extends State<HomePage> {
                       reporterController.clear();
                       Navigator.pop(context);
                     }
-
                   },
                   child: Text('Save')),
             ],
@@ -192,6 +233,21 @@ class _HomePageState extends State<HomePage> {
         });
   }
 
+  void onSearchTextChanged(String text) {
+    List<DataModel> results = [];
+    if (text.isEmpty) {
+      results = datas;
+    } else {
+      results = datas
+          .where((item) =>
+              item.property.toLowerCase().contains(text.toLowerCase()))
+          .toList();
+    }
+    setState(() {
+      _findItem = results;
+    });
+  }
+
   // Edit method
   void edit(index) {
     // Display the previous value -> Easier to edit
@@ -212,3 +268,61 @@ class _HomePageState extends State<HomePage> {
     });
   }
 }
+
+class AboutUs extends StatelessWidget {
+
+  const AboutUs({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('RentalZ'),
+      ),
+      body: ListView(
+        children: [
+          CustomWidgets.socialButtonRect(
+              'Login with Facebook', facebookColor, FontAwesomeIcons.facebookF,
+              onTap: () {
+                Fluttertoast.showToast(msg: 'I am facebook');
+              }),
+          CustomWidgets.socialButtonRect(
+              'Login with Google', googleColor, FontAwesomeIcons.googlePlusG,
+              onTap: () {
+                Fluttertoast.showToast(msg: 'I am google');
+              }),
+
+          CustomWidgets.socialButtonRect(
+              'Login with Github', githubColor, FontAwesomeIcons.github,
+              onTap: () {
+                Fluttertoast.showToast(msg: 'I am github');
+              }),
+
+        Padding(
+          padding: const EdgeInsets.all(30.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              CustomWidgets.socialButtonCircle(
+                  facebookColor, FontAwesomeIcons.facebookF,
+                  iconColor: Colors.white, onTap: () {
+                Fluttertoast.showToast(msg: 'I am circle facebook');
+              }),
+              CustomWidgets.socialButtonCircle(
+                  googleColor, FontAwesomeIcons.googlePlusG,
+                  iconColor: Colors.white, onTap: () {
+                Fluttertoast.showToast(msg: 'I am circle google');
+              }),
+              CustomWidgets.socialButtonCircle(
+                  whatsappColor, FontAwesomeIcons.whatsapp,
+                  iconColor: Colors.white, onTap: () {
+                Fluttertoast.showToast(msg: 'I am circle whatsapp');
+              }),
+            ],
+          ),)
+        ],
+      )
+    );
+  }
+}
+
